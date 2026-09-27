@@ -1,10 +1,932 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>내 웹페이지</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Choco Salary</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#fff; --text:#111827; --muted:#6b7280;
+    --line:#e5e7eb; --primary:#111827; --accent:#ec4899; --danger:#dc2626;
+    --shadow:0 2px 12px rgba(17,24,39,.06); --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif}
+  button,input,select{font:inherit}
+  button{cursor:pointer}
+  .app{max-width:1100px;margin:0 auto;padding:20px 16px 50px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+  h1{font-size:24px;margin:0 0 5px}
+  .subtitle{font-size:13px;color:var(--muted)}
+  .header-actions{display:flex;gap:8px;align-items:center}
+  #languageSelect{width:auto;height:40px;padding:0 10px;font-size:13px}
+  .btn{border:0;border-radius:11px;padding:10px 14px;font-weight:700;background:var(--primary);color:#fff}
+  .btn.secondary{background:#fff;color:var(--text);border:1px solid var(--line)}
+  .btn.danger{background:#fff;color:var(--danger);border:1px solid #fecaca}
+  .btn.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+  .tabs{display:flex;gap:6px;overflow:auto;margin-bottom:16px}
+  .tab{border:0;background:#e9ebef;color:#6b7280;padding:10px 16px;border-radius:999px;font-weight:700;white-space:nowrap}
+  .tab.active{background:var(--primary);color:#fff}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+  .panel-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .panel-title h2{font-size:17px;margin:0}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .field label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px}
+  input,select{width:100%;height:44px;border:1px solid #d9dde4;border-radius:10px;background:#fff;padding:0 12px;color:var(--text);outline:none}
+  input:focus,select:focus{border-color:#9ca3af;box-shadow:0 0 0 3px rgba(156,163,175,.12)}
+  .form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+  .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+  .stat .label{font-size:12px;color:var(--muted);margin-bottom:5px}
+  .stat .value{font-size:20px;font-weight:800;letter-spacing:-.4px}
+  .table-wrap{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}
+  th{background:#f9fafb;color:var(--muted);font-weight:700}
+  tr:last-child td{border-bottom:0}
+  td.num,th.num{text-align:right}
+  .empty{text-align:center;color:var(--muted);padding:35px 10px}
+  .danger-text{color:var(--danger)}
+  .muted{color:var(--muted)}
+  .employee-list{display:grid;gap:10px}
+  .employee-card{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .employee-name{font-weight:800}
+  .employee-meta{font-size:12px;color:var(--muted);margin-top:4px}
+  .employee-actions{display:flex;gap:6px;flex-shrink:0}
+  .icon-btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 9px;font-size:12px}
+  .notice{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:11px 13px;border-radius:10px;font-size:12px;line-height:1.5;margin-top:12px}
+  .hidden{display:none!important}
+  .month-row{display:flex;gap:8px;align-items:end}
+  .month-row .field{flex:1}
+  .right{text-align:right}
+  .footer-note{text-align:center;color:#9ca3af;font-size:11px;margin-top:22px}
+
+  /* 반응형 카드 뷰 (모바일 대응) */
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .data-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* 상단 영역: 직원 이름 (좌측) + 날짜/시간 (우측) */
+  .data-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 8px;
+  }
+  .data-card .card-header .emp-name {
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .data-card .card-header .time-str {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  /* 하단 영역: 매출 금액 | 비율 | 급여 | 삭제 버튼 (4열 한 줄 배치) */
+  .data-card .card-body {
+    display: grid;
+    grid-template-columns: 1fr 0.8fr 1fr auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .data-card .card-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .data-card .card-item .lbl {
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 3px;
+  }
+  .data-card .card-item .val {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .data-card .card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  /* 삭제 버튼 스타일 (이미지 형태 반영) */
+  .data-card .card-actions .icon-btn {
+    border: 1px solid #fecaca;
+    background: #fff;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  /* 모달 레이아웃 */
+  .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+  .modal-content{background:#fff;border-radius:var(--radius);max-width:600px;width:100%;max-height:85vh;display:flex;flex-direction:column;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,0.15)}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .modal-header h3{margin:0;font-size:18px}
+  .modal-body{overflow-y:auto;flex:1;padding-right:4px}
+
+  @media(max-width:700px){
+    .app{padding:16px 12px 40px}
+    header{align-items:flex-start}
+    h1{font-size:21px}
+    .header-actions{gap:5px}
+    .header-actions .btn,#languageSelect{padding:8px 8px;font-size:11px}
+    #languageSelect{height:36px}
+    .grid{grid-template-columns:1fr}
+    .summary{grid-template-columns:repeat(2,1fr)}
+    .stat .value{font-size:17px}
+    .panel{padding:14px;border-radius:14px}
+    .employee-card{align-items:flex-start}
+    .employee-actions{flex-direction:column}
+    
+    /* 모바일 환경에서는 테이블 숨기고 카드 뷰 표시 */
+    .table-wrap.responsive-table table{display:none}
+    .table-wrap.responsive-table .card-list{display:grid}
+  }
+  @media(min-width:701px){
+    .table-wrap.responsive-table .card-list{display:none}
+  }
+</style>
 </head>
 <body>
-    <h1>안녕하세요! Git으로 만든 첫 웹페이지입니다.</h1>
+<div class="app">
+  <header>
+    <div>
+      <h1>Choco Salary</h1>
+      <div class="subtitle">매출 기록부터 월별 급여 계산까지</div>
+    </div>
+    <div class="header-actions">
+      <select id="languageSelect" aria-label="Language">
+        <option value="ko">한국어</option>
+        <option value="en">English</option>
+        <option value="vi">Tiếng Việt</option>
+      </select>
+      <button class="btn secondary" id="exportBtn">백업</button>
+      <button class="btn secondary" id="importBtn">복원</button>
+      <input id="importFile" type="file" accept=".json" class="hidden">
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="sales">매출 입력</button>
+    <button class="tab" data-tab="monthly">월별 급여</button>
+    <button class="tab" data-tab="employees">직원 관리</button>
+  </nav>
+
+  <main>
+    <section id="salesTab">
+      <div class="panel">
+        <div class="panel-title"><h2>매출 기록 추가</h2></div>
+        <div class="grid">
+          <div class="field">
+            <label>직원</label>
+            <select id="salesEmployee"></select>
+          </div>
+          <div class="field">
+            <label>매출 금액</label>
+            <input id="salesAmount" type="number" min="0" step="1000" inputmode="numeric" placeholder="예: 1000000">
+          </div>
+          <div class="field">
+            <label>급여 비율 (%)</label>
+            <input id="salesRate" type="number" min="0" max="100" step="0.1" inputmode="decimal" placeholder="예: 10">
+          </div>
+          <div class="field">
+            <label>날짜</label>
+            <input id="salesDate" type="date">
+          </div>
+          <div class="field">
+            <label>시간</label>
+            <input id="salesTime" type="time">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn" id="addSaleBtn">매출 추가</button>
+        </div>
+        <div id="noEmployeeNotice" class="notice hidden">
+          먼저 <b>직원 관리</b>에서 직원을 등록해주세요.
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="stat"><div class="label">오늘 매출</div><div class="value" id="todaySales">₩0</div></div>
+        <div class="stat"><div class="label">오늘 급여</div><div class="value" id="todayPay">₩0</div></div>
+        <div class="stat"><div class="label">이번 달 매출</div><div class="value" id="currentMonthSales">₩0</div></div>
+        <div class="stat"><div class="label">이번 달 급여</div><div class="value" id="currentMonthPay">₩0</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">
+          <h2>최근 매출 기록</h2>
+          <span class="muted" id="saleCount"></span>
+        </div>
+        <div class="table-wrap responsive-table">
+          <table>
+            <thead><tr><th id="thDateTime">날짜/시간</th><th id="thEmployee">직원</th><th class="num" id="thSales">매출</th><th class="num" id="thRate">비율</th><th class="num" id="thSalary">급여</th><th></th></tr></thead>
+            <tbody id="salesTable"></tbody>
+          </table>
+          <div class="card-list" id="salesCardList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="monthlyTab" class="hidden">
+      <div class="panel">
+        <div class="panel-title"><h2>월별 급여 조회</h2></div>
+        <div class="month-row">
+          <div class="field">
+            <label>조회 월</label>
+            <input id="monthPicker" type="month">
+          </div>
+        </div>
+      </div>
+      <div class="summary">
+        <div class="stat"><div class="label">전체 매출</div><div class="value" id="monthTotalSales">₩0</div></div>
+        <div class="stat"><div class="label">성과급 합계</div><div class="value" id="monthTotalCommission">₩0</div></div>
+        <div class="stat"><div class="label">기본급 합계</div><div class="value" id="monthTotalBase">₩0</div></div>
+        <div class="stat"><div class="label">급여 합계</div><div class="value" id="monthTotalPay">₩0</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><h2>직원별 급여</h2><button class="btn secondary" id="printBtn">인쇄</button></div>
+        <div class="table-wrap responsive-table">
+          <table>
+            <thead><tr><th id="mthEmployee">직원</th><th class="num" id="mthBase">기본급</th><th class="num" id="mthSales">매출</th><th class="num" id="mthRate">기본비율</th><th class="num" id="mthCommission">성과급</th><th class="num" id="mthTotal">총 급여</th><th>상세</th></tr></thead>
+            <tbody id="monthlyTable"></tbody>
+          </table>
+          <div class="card-list" id="monthlyCardList"></div>
+        </div>
+        <div class="notice">
+          총 급여 = 기본급 + (각 매출건별 성과급)으로 계산됩니다.
+        </div>
+      </div>
+    </section>
+
+    <section id="employeesTab" class="hidden">
+      <div class="panel">
+        <div class="panel-title"><h2 id="employeeFormTitle">직원 등록</h2></div>
+        <input id="editingEmployeeId" type="hidden">
+        <div class="grid">
+          <div class="field">
+            <label>직원 이름</label>
+            <input id="employeeName" type="text" maxlength="30" placeholder="예: Thuong">
+          </div>
+          <div class="field">
+            <label>기본급 (월)</label>
+            <input id="employeeBaseSalary" type="number" min="0" step="10000" inputmode="numeric" placeholder="예: 1500000">
+          </div>
+          <div class="field">
+            <label>기본 급여 비율 (%)</label>
+            <input id="employeeRate" type="number" min="0" max="100" step="0.1" inputmode="decimal" placeholder="예: 10">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn secondary hidden" id="cancelEditBtn">취소</button>
+          <button class="btn" id="saveEmployeeBtn">직원 등록</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><h2>등록된 직원</h2><span class="muted" id="employeeCount"></span></div>
+        <div class="employee-list" id="employeeList"></div>
+      </div>
+      <div class="notice">
+        현재 데이터는 이 브라우저의 저장공간(localStorage)에 저장됩니다. 상단의 <b>백업</b> 버튼으로 JSON 파일을 보관해 주세요.
+      </div>
+    </section>
+  </main>
+  <div class="footer-note">브라우저에 저장되는 개인용 급여 관리 도구</div>
+</div>
+
+<!-- 상세 매출 모달 -->
+<div id="detailModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">매출 내역 상세</h3>
+      <button class="icon-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="table-wrap responsive-table">
+        <table>
+          <thead>
+            <tr><th>날짜/시간</th><th class="num">매출액</th><th class="num">비율</th><th class="num">급여</th><th></th></tr>
+          </thead>
+          <tbody id="modalSalesTable"></tbody>
+        </table>
+        <div class="card-list" id="modalSalesCardList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "nail_salary_manager_v1";
+const LANG_KEY = "nail_salary_language_v1";
+
+const I18N = {
+  ko: {
+    title:"Choco Salary", subtitle:"매출 기록부터 월별 급여 계산까지",
+    backup:"백업", restore:"복원", salesTab:"매출 입력", monthlyTab:"월별 급여", employeesTab:"직원 관리",
+    addSalesTitle:"매출 기록 추가", employee:"직원", amount:"매출 금액", date:"날짜", time:"시간", addSale:"매출 추가",
+    noEmployee:"먼저 <b>직원 관리</b>에서 직원을 등록해주세요.", todaySales:"오늘 매출", todayPay:"오늘 급여",
+    currentMonthSales:"이번 달 매출", currentMonthPay:"이번 달 급여", recentSales:"최근 매출 기록",
+    records:"건", dateTime:"날짜/시간", salary:"급여", delete:"삭제", noSales:"아직 매출 기록이 없습니다.",
+    monthlyTitle:"월별 급여 조회", selectMonth:"조회 월", totalSales:"전체 매출", totalCommission:"성과급 합계",
+    totalBase:"기본급 합계", totalPay:"급여 합계", employeeSalary:"직원별 급여", print:"인쇄",
+    baseSalary:"기본급", rate:"비율", commission:"성과급", totalSalary:"총 급여",
+    calculation:"총 급여 = 기본급 + (각 매출건별 성과급)으로 계산됩니다.",
+    employeeRegister:"직원 등록", employeeEdit:"직원 정보 수정", employeeName:"직원 이름",
+    monthlyBase:"기본급 (월)", ratePercent:"기본 급여 비율 (%)", register:"직원 등록", saveEdit:"수정 저장",
+    cancel:"취소", registeredEmployees:"등록된 직원", people:"명", noEmployees:"등록된 직원이 없습니다.",
+    backupNotice:"현재 데이터는 이 브라우저의 저장공간(localStorage)에 저장됩니다. 상단의 <b>백업</b> 버튼으로 JSON 파일을 보관해 주세요.",
+    footer:"브라우저에 저장되는 개인용 급여 관리 도구",
+    placeholderName:"예: Thuong", placeholderBase:"예: 1500000", placeholderRate:"예: 10", placeholderAmount:"예: 1000000",
+    deletedEmployee:"삭제된 직원", confirmDeleteSale:"이 매출 기록을 삭제할까요?",
+    confirmDeleteEmployee:'"{name}" 직원을 삭제할까요?',
+    confirmDeleteEmployeeSales:'"{name}" 직원을 삭제하면 직원 정보만 삭제되고 기존 매출 기록은 보존됩니다. 계속할까요?',
+    enterEmployee:"직원 이름을 입력해주세요.", checkBase:"기본급을 확인해주세요.",
+    checkRate:"급여 비율은 0~100% 사이로 입력해주세요.", selectEmployee:"직원을 선택해주세요.",
+    enterAmount:"매출 금액을 입력해주세요.", checkDate:"날짜와 시간을 확인해주세요.",
+    backupName:"nail-salary-backup", restoreConfirm:"현재 데이터를 백업 파일의 데이터로 교체할까요?",
+    restoreSuccess:"데이터를 복원했습니다.", invalidBackup:"올바른 백업 파일이 아닙니다.", viewDetail:"내역 보기"
+  },
+  en: {
+    title:"Choco Salary", subtitle:"Track sales and calculate monthly payroll",
+    backup:"Backup", restore:"Restore", salesTab:"Sales", monthlyTab:"Monthly Payroll", employeesTab:"Employees",
+    addSalesTitle:"Add Sales Record", employee:"Employee", amount:"Sales Amount", date:"Date", time:"Time", addSale:"Add Sale",
+    noEmployee:'Please register an employee in <b>Employees</b> first.', todaySales:"Today's Sales", todayPay:"Today's Pay",
+    currentMonthSales:"This Month's Sales", currentMonthPay:"This Month's Pay", recentSales:"Recent Sales",
+    records:"records", dateTime:"Date / Time", salary:"Pay", delete:"Delete", noSales:"No sales records yet.",
+    monthlyTitle:"Monthly Payroll", selectMonth:"Month", totalSales:"Total Sales", totalCommission:"Total Commission",
+    totalBase:"Total Base Salary", totalPay:"Total Payroll", employeeSalary:"Employee Payroll", print:"Print",
+    baseSalary:"Base Salary", rate:"Rate", commission:"Commission", totalSalary:"Total Pay",
+    calculation:"Total pay = Base salary + (commission per sales record).",
+    employeeRegister:"Add Employee", employeeEdit:"Edit Employee", employeeName:"Employee Name",
+    monthlyBase:"Monthly Base Salary", ratePercent:"Default Rate (%)", register:"Add Employee", saveEdit:"Save Changes",
+    cancel:"Cancel", registeredEmployees:"Registered Employees", people:"employees", noEmployees:"No employees registered.",
+    backupNotice:"Data is stored in this browser's localStorage. Use <b>Backup</b> button to save JSON.",
+    footer:"Personal payroll management tool stored in your browser",
+    placeholderName:"e.g. Thuong", placeholderBase:"e.g. 1500000", placeholderRate:"e.g. 10", placeholderAmount:"e.g. 1000000",
+    deletedEmployee:"Deleted employee", confirmDeleteSale:"Delete this sales record?",
+    confirmDeleteEmployee:'Delete "{name}"?',
+    confirmDeleteEmployeeSales:'Deleting "{name}" will remove the employee information but keep existing sales records. Continue?',
+    enterEmployee:"Please enter an employee name.", checkBase:"Please check the base salary.",
+    checkRate:"Commission rate must be between 0 and 100%.", selectEmployee:"Please select an employee.",
+    enterAmount:"Please enter the sales amount.", checkDate:"Please check the date and time.",
+    backupName:"nail-salary-backup", restoreConfirm:"Replace current data with backup file?",
+    restoreSuccess:"Data restored successfully.", invalidBackup:"Invalid backup file.", viewDetail:"View Sales"
+  },
+  vi: {
+    title:"Choco Salary", subtitle:"Ghi nhận doanh thu và tính lương hàng tháng",
+    backup:"Sao lưu", restore:"Khôi phục", salesTab:"Nhập doanh thu", monthlyTab:"Lương hàng tháng", employeesTab:"Nhân viên",
+    addSalesTitle:"Thêm doanh thu", employee:"Nhân viên", amount:"Số tiền doanh thu", date:"Ngày", time:"Giờ", addSale:"Thêm doanh thu",
+    noEmployee:'Vui lòng đăng ký nhân viên trong mục <b>Nhân viên</b> trước.', todaySales:"Doanh thu hôm nay", todayPay:"Lương hôm nay",
+    currentMonthSales:"Doanh thu tháng này", currentMonthPay:"Lương tháng này", recentSales:"Doanh thu gần đây",
+    records:"mục", dateTime:"Ngày / Giờ", salary:"Lương", delete:"Xóa", noSales:"Chưa có dữ liệu doanh thu.",
+    monthlyTitle:"Lương hàng tháng", selectMonth:"Tháng", totalSales:"Tổng doanh thu", totalCommission:"Tổng hoa hồng",
+    totalBase:"Tổng lương cơ bản", totalPay:"Tổng lương", employeeSalary:"Lương theo nhân viên", print:"In",
+    baseSalary:"Lương cơ bản", rate:"Tỷ lệ", commission:"Hoa hồng", totalSalary:"Tổng lương",
+    calculation:"Tổng lương = Lương cơ bản + (hoa hồng theo từng doanh thu).",
+    employeeRegister:"Đăng ký nhân viên", employeeEdit:"Sửa thông tin nhân viên", employeeName:"Tên nhân viên",
+    monthlyBase:"Lương cơ bản (tháng)", ratePercent:"Tỷ lệ mặc định (%)", register:"Đăng ký nhân viên", saveEdit:"Lưu thay đổi",
+    cancel:"Hủy", registeredEmployees:"Nhân viên đã đăng ký", people:"người", noEmployees:"Chưa có nhân viên.",
+    backupNotice:"Dữ liệu được lưu trong localStorage. Hãy dùng nút <b>Sao lưu</b> để lưu file JSON.",
+    footer:"Công cụ quản lý lương cá nhân lưu trong trình duyệt",
+    placeholderName:"ví dụ: Thuong", placeholderBase:"ví dụ: 1500000", placeholderRate:"ví dụ: 10", placeholderAmount:"ví dụ: 1000000",
+    deletedEmployee:"Nhân viên đã xóa", confirmDeleteSale:"Bạn có muốn xóa bản ghi doanh thu này không?",
+    confirmDeleteEmployee:'Bạn có muốn xóa "{name}" không?',
+    confirmDeleteEmployeeSales:'Xóa "{name}" sẽ giữ lại các bản ghi doanh thu hiện có. Tiếp tục?',
+    enterEmployee:"Vui lòng nhập tên nhân viên.", checkBase:"Vui lòng kiểm tra lương cơ bản.",
+    checkRate:"Tỷ lệ lương phải từ 0 đến 100%.", selectEmployee:"Vui lòng chọn nhân viên.",
+    enterAmount:"Vui lòng nhập số tiền doanh thu.", checkDate:"Vui lòng kiểm tra ngày và giờ.",
+    backupName:"nail-salary-backup", restoreConfirm:"Thay thế dữ liệu bằng file sao lưu?",
+    restoreSuccess:"Đã khôi phục dữ liệu.", invalidBackup:"File sao lưu không hợp lệ.", viewDetail:"Xem chi tiết"
+  }
+};
+
+let currentLang = localStorage.getItem(LANG_KEY) || "vi";
+if(!I18N[currentLang]) currentLang = "vi";
+
+function t(key, vars={}){
+  let s = I18N[currentLang][key] ?? I18N.ko[key] ?? key;
+  Object.keys(vars).forEach(k=>{s=s.replaceAll("{"+k+"}", vars[k]);});
+  return s;
+}
+
+function applyLanguage(){
+  document.documentElement.lang = currentLang;
+  document.getElementById("languageSelect").value = currentLang;
+  document.title = t("title");
+
+  const map = {
+    ".subtitle":"subtitle", "#exportBtn":"backup", "#importBtn":"restore",
+    '[data-tab="sales"]':"salesTab", '[data-tab="monthly"]':"monthlyTab", '[data-tab="employees"]':"employeesTab",
+    "#salesTab .panel-title h2":"addSalesTitle", "#salesTab .field:nth-child(1) label":"employee",
+    "#salesTab .field:nth-child(2) label":"amount", "#salesTab .field:nth-child(3) label":"ratePercent",
+    "#salesTab .field:nth-child(4) label":"date", "#salesTab .field:nth-child(5) label":"time", "#addSaleBtn":"addSale",
+    ".stat:nth-child(1) .label":"todaySales", ".stat:nth-child(2) .label":"todayPay",
+    ".stat:nth-child(3) .label":"currentMonthSales", ".stat:nth-child(4) .label":"currentMonthPay",
+    "#salesTab .panel:nth-of-type(2) .panel-title h2":"recentSales",
+    "#monthlyTab .panel-title h2":"monthlyTitle", "#monthlyTab .field label":"selectMonth",
+    "#monthlyTab .panel:nth-of-type(2) .panel-title h2":"employeeSalary", "#printBtn":"print",
+    "#employeesTab .panel-title h2":"employeeRegister", "#employeesTab .field:nth-child(1) label":"employeeName",
+    "#employeesTab .field:nth-child(2) label":"monthlyBase", "#employeesTab .field:nth-child(3) label":"ratePercent",
+    "#saveEmployeeBtn":"register", "#cancelEditBtn":"cancel",
+    "#employeesTab .panel:nth-of-type(2) .panel-title h2":"registeredEmployees"
+  };
+  Object.entries(map).forEach(([sel,key])=>{
+    const el=document.querySelector(sel); if(el) el.innerHTML=t(key);
+  });
+
+  document.querySelector("#monthlyTab .stat:nth-child(1) .label").textContent=t("totalSales");
+  document.querySelector("#monthlyTab .stat:nth-child(2) .label").textContent=t("totalCommission");
+  document.querySelector("#monthlyTab .stat:nth-child(3) .label").textContent=t("totalBase");
+  document.querySelector("#monthlyTab .stat:nth-child(4) .label").textContent=t("totalPay");
+
+  document.getElementById("noEmployeeNotice").innerHTML=t("noEmployee");
+  document.querySelector("#monthlyTab .notice").textContent=t("calculation");
+  document.querySelector("#employeesTab .notice").innerHTML=t("backupNotice");
+  document.querySelector(".footer-note").textContent=t("footer");
+
+  document.getElementById("employeeName").placeholder=t("placeholderName");
+  document.getElementById("employeeBaseSalary").placeholder=t("placeholderBase");
+  document.getElementById("employeeRate").placeholder=t("placeholderRate");
+  document.getElementById("salesRate").placeholder=t("placeholderRate");
+  document.getElementById("salesAmount").placeholder=t("placeholderAmount");
+
+  document.getElementById("thDateTime").textContent=t("dateTime");
+  document.getElementById("thEmployee").textContent=t("employee");
+  document.getElementById("thSales").textContent=t("amount").replace(" Amount","").replace(" 금액","").replace("Số tiền ","");
+  document.getElementById("thRate").textContent=t("rate");
+  document.getElementById("thSalary").textContent=t("salary");
+  document.getElementById("mthEmployee").textContent=t("employee");
+  document.getElementById("mthBase").textContent=t("baseSalary");
+  document.getElementById("mthSales").textContent=t("amount").replace(" Amount","").replace(" 금액","").replace("Số tiền ","");
+  document.getElementById("mthRate").textContent=t("rate");
+  document.getElementById("mthCommission").textContent=t("commission");
+  document.getElementById("mthTotal").textContent=t("totalSalary");
+
+  renderEmployeeSelect();
+  renderSales();
+  renderEmployees();
+  renderMonthly();
+  renderDashboard();
+}
+
+const state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const data = JSON.parse(raw);
+      return { employees:Array.isArray(data.employees)?data.employees:[], sales:Array.isArray(data.sales)?data.sales:[] };
+    }
+  }catch(e){}
+  return {employees:[], sales:[]};
+}
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function uid(){
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+}
+
+function money(n){
+  return Math.round(Number(n)||0).toLocaleString("vi-VN") + " ₫";
+}
+
+function localDateTime(){
+  const d = new Date();
+  const date = d.toISOString().slice(0,10);
+  const time = d.toTimeString().slice(0,5);
+  return {date,time};
+}
+
+function employeeById(id){
+  return state.employees.find(e=>e.id===id);
+}
+
+function salePay(sale){
+  const e = employeeById(sale.employeeId);
+  const rate = sale.rate !== undefined ? Number(sale.rate) : (e ? Number(e.rate||0) : 0);
+  return Number(sale.amount||0) * rate / 100;
+}
+
+function formatDateTime(s){
+  return `${s.date} ${s.time}`;
+}
+
+function getMonth(){
+  return document.getElementById("monthPicker").value || new Date().toISOString().slice(0,7);
+}
+
+function onEmployeeSelectChange(){
+  const empId = document.getElementById("salesEmployee").value;
+  const emp = employeeById(empId);
+  if(emp){
+    document.getElementById("salesRate").value = emp.rate;
+  }
+}
+
+function renderEmployeeSelect(){
+  const select = document.getElementById("salesEmployee");
+  const current = select.value;
+  if(!state.employees.length){
+    select.innerHTML = `<option value="">${escapeHtml(t("noEmployees"))}</option>`;
+    select.disabled = true;
+    document.getElementById("noEmployeeNotice").classList.remove("hidden");
+    document.getElementById("addSaleBtn").disabled = true;
+    document.getElementById("salesRate").value = "";
+  }else{
+    select.disabled = false;
+    select.innerHTML = state.employees.map(e=>`<option value="${e.id}">${escapeHtml(e.name)} · ${e.rate}%</option>`).join("");
+    if(state.employees.some(e=>e.id===current)) select.value=current;
+    document.getElementById("noEmployeeNotice").classList.add("hidden");
+    document.getElementById("addSaleBtn").disabled = false;
+    onEmployeeSelectChange();
+  }
+}
+
+document.getElementById("salesEmployee").addEventListener("change", onEmployeeSelectChange);
+
+function renderSales(){
+  const tbody = document.getElementById("salesTable");
+  const cardList = document.getElementById("salesCardList");
+  const sorted = [...state.sales].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  document.getElementById("saleCount").textContent = `${sorted.length}${t("records")}`;
+  
+  if(!sorted.length){
+    tbody.innerHTML = `<tr><td colspan="6" class="empty">${t("noSales")}</td></tr>`;
+    cardList.innerHTML = `<div class="empty">${t("noSales")}</div>`;
+    return;
+  }
+
+  const list = sorted.slice(0,100);
+  tbody.innerHTML = list.map(s=>{
+    const e = employeeById(s.employeeId);
+    const pay = salePay(s);
+    const rate = s.rate !== undefined ? s.rate : (e ? e.rate : 0);
+    return `<tr>
+      <td>${escapeHtml(formatDateTime(s))}</td>
+      <td>${escapeHtml(e?e.name:t("deletedEmployee"))}</td>
+      <td class="num">${money(s.amount)}</td>
+      <td class="num">${rate}%</td>
+      <td class="num">${money(pay)}</td>
+      <td class="right"><button class="icon-btn danger-text" onclick="deleteSale('${s.id}')">${t("delete")}</button></td>
+    </tr>`;
+  }).join("");
+
+  cardList.innerHTML = list.map(s=>{
+    const e = employeeById(s.employeeId);
+    const pay = salePay(s);
+    const rate = s.rate !== undefined ? s.rate : (e ? e.rate : 0);
+    
+    return `<div class="data-card">
+      <div class="card-header">
+        <span class="emp-name">${escapeHtml(e ? e.name : t("deletedEmployee"))}</span>
+        <span class="time-str">${escapeHtml(formatDateTime(s))}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-item">
+          <span class="lbl">${t("amount")}</span>
+          <span class="val">${money(s.amount)}</span>
+        </div>
+        <div class="card-item">
+          <span class="lbl">${t("rate")}</span>
+          <span class="val">${rate}%</span>
+        </div>
+        <div class="card-item">
+          <span class="lbl">${t("salary")}</span>
+          <span class="val">${money(pay)}</span>
+        </div>
+        <div class="card-actions">
+          <button class="icon-btn danger-text" onclick="deleteSale('${s.id}')">${t("delete")}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderDashboard(){
+  const now = new Date();
+  const today = now.toISOString().slice(0,10);
+  const month = now.toISOString().slice(0,7);
+  const todaySales = state.sales.filter(s=>s.date===today);
+  const monthSales = state.sales.filter(s=>s.date.startsWith(month));
+  document.getElementById("todaySales").textContent = money(todaySales.reduce((a,s)=>a+Number(s.amount),0));
+  document.getElementById("todayPay").textContent = money(todaySales.reduce((a,s)=>a+salePay(s),0));
+  document.getElementById("currentMonthSales").textContent = money(monthSales.reduce((a,s)=>a+Number(s.amount),0));
+  document.getElementById("currentMonthPay").textContent = money(monthSales.reduce((a,s)=>a+salePay(s),0));
+}
+
+function renderEmployees(){
+  const list = document.getElementById("employeeList");
+  document.getElementById("employeeCount").textContent = `${state.employees.length}${t("people")}`;
+  if(!state.employees.length){
+    list.innerHTML = `<div class="empty">${t("noEmployees")}</div>`;
+    return;
+  }
+  list.innerHTML = state.employees.map(e=>`
+    <div class="employee-card">
+      <div>
+        <div class="employee-name">${escapeHtml(e.name)}</div>
+        <div class="employee-meta">${t("baseSalary")} ${money(e.baseSalary)} · ${t("rate")} ${e.rate}%</div>
+      </div>
+      <div class="employee-actions">
+        <button class="icon-btn" onclick="editEmployee('${e.id}')">${currentLang==="ko"?"수정":currentLang==="en"?"Edit":"Sửa"}</button>
+        <button class="icon-btn danger-text" onclick="deleteEmployee('${e.id}')">${t("delete")}</button>
+      </div>
+    </div>`).join("");
+}
+
+function renderMonthly(){
+  const month = getMonth();
+  const tbody = document.getElementById("monthlyTable");
+  const cardList = document.getElementById("monthlyCardList");
+  
+  const rows = state.employees.map(e=>{
+    const sales = state.sales.filter(s=>s.employeeId===e.id && s.date.startsWith(month));
+    const totalSales = sales.reduce((a,s)=>a+Number(s.amount||0),0);
+    const commission = sales.reduce((a,s)=>a+salePay(s),0);
+    const totalPay = Number(e.baseSalary||0) + commission;
+    return {e,totalSales,commission,totalPay};
+  });
+
+  document.getElementById("monthTotalSales").textContent = money(rows.reduce((a,r)=>a+r.totalSales,0));
+  document.getElementById("monthTotalCommission").textContent = money(rows.reduce((a,r)=>a+r.commission,0));
+  document.getElementById("monthTotalBase").textContent = money(rows.reduce((a,r)=>a+Number(r.e.baseSalary||0),0));
+  document.getElementById("monthTotalPay").textContent = money(rows.reduce((a,r)=>a+r.totalPay,0));
+
+  if(!rows.length){
+    tbody.innerHTML=`<tr><td colspan="7" class="empty">${t("noEmployees")}</td></tr>`;
+    cardList.innerHTML=`<div class="empty">${t("noEmployees")}</div>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r=>`<tr>
+    <td><b>${escapeHtml(r.e.name)}</b></td>
+    <td class="num">${money(r.e.baseSalary)}</td>
+    <td class="num">${money(r.totalSales)}</td>
+    <td class="num">${r.e.rate}%</td>
+    <td class="num">${money(r.commission)}</td>
+    <td class="num"><b>${money(r.totalPay)}</b></td>
+    <td class="right"><button class="btn sm secondary" onclick="viewEmployeeMonthSales('${r.e.id}')">${t("viewDetail")}</button></td>
+  </tr>`).join("");
+
+  cardList.innerHTML = rows.map(r=>`<div class="data-card">
+    <div class="card-header">
+      <span>${escapeHtml(r.e.name)}</span>
+      <button class="btn sm secondary" onclick="viewEmployeeMonthSales('${r.e.id}')">${t("viewDetail")}</button>
+    </div>
+    <div class="card-body">
+      <div class="card-item"><span class="lbl">${t("baseSalary")}</span><span class="val">${money(r.e.baseSalary)}</span></div>
+      <div class="card-item"><span class="lbl">${t("amount")}</span><span class="val">${money(r.totalSales)}</span></div>
+      <div class="card-item"><span class="lbl">${t("commission")}</span><span class="val">${money(r.commission)}</span></div>
+      <div class="card-item"><span class="lbl">${t("totalSalary")}</span><span class="val">${money(r.totalPay)}</span></div>
+    </div>
+  </div>`).join("");
+}
+
+let activeDetailEmployeeId = null;
+
+function viewEmployeeMonthSales(empId){
+  activeDetailEmployeeId = empId;
+  const emp = employeeById(empId);
+  const month = getMonth();
+  if(!emp) return;
+
+  document.getElementById("modalTitle").textContent = `${emp.name} - ${month} ${t("recentSales")}`;
+  renderModalSales();
+  document.getElementById("detailModal").classList.remove("hidden");
+}
+
+function renderModalSales(){
+  if(!activeDetailEmployeeId) return;
+  const month = getMonth();
+  const sales = state.sales.filter(s=>s.employeeId===activeDetailEmployeeId && s.date.startsWith(month))
+                           .sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+
+  const tbody = document.getElementById("modalSalesTable");
+  const cardList = document.getElementById("modalSalesCardList");
+
+  if(!sales.length){
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">${t("noSales")}</td></tr>`;
+    cardList.innerHTML = `<div class="empty">${t("noSales")}</div>`;
+    return;
+  }
+
+  tbody.innerHTML = sales.map(s=>{
+    const pay = salePay(s);
+    const rate = s.rate !== undefined ? s.rate : (employeeById(s.employeeId)?.rate || 0);
+    return `<tr>
+      <td>${escapeHtml(formatDateTime(s))}</td>
+      <td class="num">${money(s.amount)}</td>
+      <td class="num">${rate}%</td>
+      <td class="num">${money(pay)}</td>
+      <td class="right"><button class="icon-btn danger-text" onclick="deleteSaleModal('${s.id}')">${t("delete")}</button></td>
+    </tr>`;
+  }).join("");
+
+  cardList.innerHTML = sales.map(s=>{
+    const pay = salePay(s);
+    const rate = s.rate !== undefined ? s.rate : (employeeById(s.employeeId)?.rate || 0);
+    return `<div class="data-card">
+      <div class="card-header">
+        <span>${escapeHtml(formatDateTime(s))}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-item"><span class="lbl">${t("amount")}</span><span class="val">${money(s.amount)}</span></div>
+        <div class="card-item"><span class="lbl">${t("rate")}</span><span class="val">${rate}%</span></div>
+        <div class="card-item"><span class="lbl">${t("salary")}</span><span class="val">${money(pay)}</span></div>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn danger-text" onclick="deleteSaleModal('${s.id}')">${t("delete")}</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function closeModal(){
+  document.getElementById("detailModal").classList.add("hidden");
+  activeDetailEmployeeId = null;
+}
+
+function deleteSaleModal(id){
+  if(!confirm(t("confirmDeleteSale")))return;
+  state.sales=state.sales.filter(s=>s.id!==id);
+  saveState(); 
+  refresh();
+  renderModalSales();
+}
+
+function refresh(){
+  renderEmployeeSelect();
+  renderSales();
+  renderDashboard();
+  renderEmployees();
+  renderMonthly();
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    ["sales","monthly","employees"].forEach(id=>document.getElementById(id+"Tab").classList.toggle("hidden", id!==btn.dataset.tab));
+    if(btn.dataset.tab==="monthly") renderMonthly();
+  });
+});
+
+document.getElementById("addSaleBtn").addEventListener("click",()=>{
+  const employeeId = document.getElementById("salesEmployee").value;
+  const amount = Number(document.getElementById("salesAmount").value);
+  const rate = Number(document.getElementById("salesRate").value);
+  const date = document.getElementById("salesDate").value;
+  const time = document.getElementById("salesTime").value;
+
+  if(!employeeId) return alert(t("selectEmployee"));
+  if(!amount || amount<0) return alert(t("enterAmount"));
+  if(rate<0 || rate>100 || Number.isNaN(rate)) return alert(t("checkRate"));
+  if(!date || !time) return alert(t("checkDate"));
+
+  state.sales.push({id:uid(),employeeId,amount,rate,date,time,createdAt:new Date().toISOString()});
+  saveState();
+  document.getElementById("salesAmount").value="";
+  refresh();
+});
+
+document.getElementById("saveEmployeeBtn").addEventListener("click",()=>{
+  const editingId = document.getElementById("editingEmployeeId").value;
+  const name = document.getElementById("employeeName").value.trim();
+  const baseSalary = Number(document.getElementById("employeeBaseSalary").value);
+  const rate = Number(document.getElementById("employeeRate").value);
+
+  if(!name) return alert(t("enterEmployee"));
+  if(baseSalary<0 || Number.isNaN(baseSalary)) return alert(t("checkBase"));
+  if(rate<0 || rate>100 || Number.isNaN(rate)) return alert(t("checkRate"));
+
+  if(editingId){
+    const e=employeeById(editingId);
+    if(e){e.name=name;e.baseSalary=baseSalary;e.rate=rate;}
+  }else{
+    state.employees.push({id:uid(),name,baseSalary,rate});
+  }
+  saveState();
+  resetEmployeeForm();
+  refresh();
+});
+
+document.getElementById("cancelEditBtn").addEventListener("click",resetEmployeeForm);
+
+function resetEmployeeForm(){
+  document.getElementById("editingEmployeeId").value="";
+  document.getElementById("employeeName").value="";
+  document.getElementById("employeeBaseSalary").value="";
+  document.getElementById("employeeRate").value="";
+  document.getElementById("employeeFormTitle").textContent=t("employeeRegister");
+  document.getElementById("saveEmployeeBtn").textContent=t("register");
+  document.getElementById("cancelEditBtn").classList.add("hidden");
+}
+
+window.editEmployee = function(id){
+  const e=employeeById(id); if(!e)return;
+  document.querySelector('[data-tab="employees"]').click();
+  document.getElementById("editingEmployeeId").value=e.id;
+  document.getElementById("employeeName").value=e.name;
+  document.getElementById("employeeBaseSalary").value=e.baseSalary;
+  document.getElementById("employeeRate").value=e.rate;
+  document.getElementById("employeeFormTitle").textContent=t("employeeEdit");
+  document.getElementById("saveEmployeeBtn").textContent=t("saveEdit");
+  document.getElementById("cancelEditBtn").classList.remove("hidden");
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+
+window.deleteEmployee = function(id){
+  const e=employeeById(id); if(!e)return;
+  const hasSales=state.sales.some(s=>s.employeeId===id);
+  const msg=hasSales
+    ? t("confirmDeleteEmployeeSales",{name:e.name})
+    : t("confirmDeleteEmployee",{name:e.name});
+  if(!confirm(msg))return;
+  state.employees=state.employees.filter(x=>x.id!==id);
+  saveState(); refresh();
+};
+
+window.deleteSale = function(id){
+  if(!confirm(t("confirmDeleteSale")))return;
+  state.sales=state.sales.filter(s=>s.id!==id);
+  saveState(); refresh();
+};
+
+document.getElementById("languageSelect").addEventListener("change",e=>{
+  currentLang=e.target.value;
+  localStorage.setItem(LANG_KEY,currentLang);
+  applyLanguage();
+});
+document.getElementById("monthPicker").addEventListener("change",renderMonthly);
+
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`${t("backupName")}-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("importBtn").addEventListener("click",()=>document.getElementById("importFile").click());
+
+document.getElementById("importFile").addEventListener("change",e=>{
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      if(!Array.isArray(data.employees)||!Array.isArray(data.sales)) throw new Error();
+      if(!confirm(t("restoreConfirm")))return;
+      state.employees=data.employees;
+      state.sales=data.sales;
+      saveState(); refresh();
+      alert(t("restoreSuccess"));
+    }catch(err){alert(t("invalidBackup"));}
+    e.target.value="";
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById("printBtn").addEventListener("click",()=>window.print());
+
+(function init(){
+  const dt=localDateTime();
+  document.getElementById("salesDate").value=dt.date;
+  document.getElementById("salesTime").value=dt.time;
+  document.getElementById("monthPicker").value=dt.date.slice(0,7);
+  applyLanguage();
+})();
+</script>
 </body>
 </html>
