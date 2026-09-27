@@ -62,80 +62,29 @@
   .right{text-align:right}
   .footer-note{text-align:center;color:#9ca3af;font-size:11px;margin-top:22px}
 
-  /* 반응형 카드 뷰 (모바일 대응) */
-  .card-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
+  /* 반응형 카드 뷰 (이미지 기반 레이아웃) */
+  .card-list { display: flex; flex-direction: column; gap: 10px; }
   .data-card {
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 12px 14px;
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
+    background: #fff; display: flex; flex-direction: column; gap: 10px;
   }
-
-  /* 상단 영역: 직원 이름 (좌측) + 날짜/시간 (우측) */
   .data-card .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #f3f4f6;
-    padding-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #f3f4f6; padding-bottom: 8px;
   }
-  .data-card .card-header .emp-name {
-    font-weight: 800;
-    font-size: 14px;
-    color: var(--text);
-  }
-  .data-card .card-header .time-str {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--muted);
-  }
-
-  /* 하단 영역: 매출 금액 | 비율 | 급여 | 삭제 버튼 (4열 한 줄 배치) */
+  .data-card .card-header .emp-name { font-weight: 800; font-size: 14px; color: var(--text); }
+  .data-card .card-header .time-str { font-size: 12px; font-weight: 700; color: var(--muted); }
   .data-card .card-body {
-    display: grid;
-    grid-template-columns: 1fr 0.8fr 1fr auto;
-    align-items: center;
-    gap: 8px;
+    display: grid; grid-template-columns: 1fr 0.8fr 1fr auto;
+    align-items: center; gap: 8px;
   }
-
-  .data-card .card-item {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .data-card .card-item .lbl {
-    color: var(--muted);
-    font-size: 11px;
-    margin-bottom: 3px;
-  }
-  .data-card .card-item .val {
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--text);
-  }
-
-  .data-card .card-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-  }
-
-  /* 삭제 버튼 스타일 (이미지 형태 반영) */
+  .data-card .card-item { display: flex; flex-direction: column; align-items: flex-start; }
+  .data-card .card-item .lbl { color: var(--muted); font-size: 11px; margin-bottom: 3px; }
+  .data-card .card-item .val { font-weight: 700; font-size: 13px; color: var(--text); }
+  .data-card .card-actions { display: flex; align-items: center; justify-content: flex-end; }
   .data-card .card-actions .icon-btn {
-    border: 1px solid #fecaca;
-    background: #fff;
-    border-radius: 10px;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 700;
+    border: 1px solid #fecaca; background: #fff; border-radius: 10px;
+    padding: 6px 12px; font-size: 12px; font-weight: 700;
   }
 
   /* 모달 레이아웃 */
@@ -144,6 +93,13 @@
   .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
   .modal-header h3{margin:0;font-size:18px}
   .modal-body{overflow-y:auto;flex:1;padding-right:4px}
+
+  /* DB 연결 상태 표시 바 */
+  .sync-status {
+    font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px;
+  }
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
+  .sync-dot.offline { background: #ef4444; }
 
   @media(max-width:700px){
     .app{padding:16px 12px 40px}
@@ -158,10 +114,8 @@
     .panel{padding:14px;border-radius:14px}
     .employee-card{align-items:flex-start}
     .employee-actions{flex-direction:column}
-    
-    /* 모바일 환경에서는 테이블 숨기고 카드 뷰 표시 */
     .table-wrap.responsive-table table{display:none}
-    .table-wrap.responsive-table .card-list{display:grid}
+    .table-wrap.responsive-table .card-list{display:flex}
   }
   @media(min-width:701px){
     .table-wrap.responsive-table .card-list{display:none}
@@ -174,6 +128,7 @@
     <div>
       <h1>Choco Salary</h1>
       <div class="subtitle">매출 기록부터 월별 급여 계산까지</div>
+      <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span id="syncText">클라우드 동기화 완료</span></div>
     </div>
     <div class="header-actions">
       <select id="languageSelect" aria-label="Language">
@@ -228,10 +183,10 @@
       </div>
 
       <div class="summary">
-        <div class="stat"><div class="label">오늘 매출</div><div class="value" id="todaySales">₩0</div></div>
-        <div class="stat"><div class="label">오늘 급여</div><div class="value" id="todayPay">₩0</div></div>
-        <div class="stat"><div class="label">이번 달 매출</div><div class="value" id="currentMonthSales">₩0</div></div>
-        <div class="stat"><div class="label">이번 달 급여</div><div class="value" id="currentMonthPay">₩0</div></div>
+        <div class="stat"><div class="label">오늘 매출</div><div class="value" id="todaySales">0 ₫</div></div>
+        <div class="stat"><div class="label">오늘 급여</div><div class="value" id="todayPay">0 ₫</div></div>
+        <div class="stat"><div class="label">이번 달 매출</div><div class="value" id="currentMonthSales">0 ₫</div></div>
+        <div class="stat"><div class="label">이번 달 급여</div><div class="value" id="currentMonthPay">0 ₫</div></div>
       </div>
 
       <div class="panel">
@@ -260,10 +215,10 @@
         </div>
       </div>
       <div class="summary">
-        <div class="stat"><div class="label">전체 매출</div><div class="value" id="monthTotalSales">₩0</div></div>
-        <div class="stat"><div class="label">성과급 합계</div><div class="value" id="monthTotalCommission">₩0</div></div>
-        <div class="stat"><div class="label">기본급 합계</div><div class="value" id="monthTotalBase">₩0</div></div>
-        <div class="stat"><div class="label">급여 합계</div><div class="value" id="monthTotalPay">₩0</div></div>
+        <div class="stat"><div class="label">전체 매출</div><div class="value" id="monthTotalSales">0 ₫</div></div>
+        <div class="stat"><div class="label">성과급 합계</div><div class="value" id="monthTotalCommission">0 ₫</div></div>
+        <div class="stat"><div class="label">기본급 합계</div><div class="value" id="monthTotalBase">0 ₫</div></div>
+        <div class="stat"><div class="label">급여 합계</div><div class="value" id="monthTotalPay">0 ₫</div></div>
       </div>
       <div class="panel">
         <div class="panel-title"><h2>직원별 급여</h2><button class="btn secondary" id="printBtn">인쇄</button></div>
@@ -308,11 +263,11 @@
         <div class="employee-list" id="employeeList"></div>
       </div>
       <div class="notice">
-        현재 데이터는 이 브라우저의 저장공간(localStorage)에 저장됩니다. 상단의 <b>백업</b> 버튼으로 JSON 파일을 보관해 주세요.
+        데이터는 무료 클라우드 DB에 **실시간 자동 저장 및 백업**됩니다. 아이폰 데이터 청소 시에도 안심하고 이용할 수 있습니다.
       </div>
     </section>
   </main>
-  <div class="footer-note">브라우저에 저장되는 개인용 급여 관리 도구</div>
+  <div class="footer-note">클라우드 실시간 동기화 급여 관리 도구</div>
 </div>
 
 <!-- 상세 매출 모달 -->
@@ -336,8 +291,27 @@
   </div>
 </div>
 
+<!-- Firebase SDK 불러오기 -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <script>
-const STORAGE_KEY = "nail_salary_manager_v1";
+// Firebase 키 설정 (본인의 Firebase 프로젝트 값으로 변경)
+const firebaseConfig = {
+  apiKey: "AIzaSyACIwkuP9vuJIBsWuX4ieWO7kvfOB_qyRI",
+  authDomain: "choco-salary.firebaseapp.com",
+  databaseURL: "https://choco-salary-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "choco-salary",
+  storageBucket: "choco-salary.firebasestorage.app",
+  messagingSenderId: "409341838252",
+  appId: "1:409341838252:web:5deb67dfbf1f4a18d13009",
+};
+
+// Firebase 초기화
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const dbRef = db.ref("app_data");
+
 const LANG_KEY = "nail_salary_language_v1";
 
 const I18N = {
@@ -355,8 +329,8 @@ const I18N = {
     employeeRegister:"직원 등록", employeeEdit:"직원 정보 수정", employeeName:"직원 이름",
     monthlyBase:"기본급 (월)", ratePercent:"기본 급여 비율 (%)", register:"직원 등록", saveEdit:"수정 저장",
     cancel:"취소", registeredEmployees:"등록된 직원", people:"명", noEmployees:"등록된 직원이 없습니다.",
-    backupNotice:"현재 데이터는 이 브라우저의 저장공간(localStorage)에 저장됩니다. 상단의 <b>백업</b> 버튼으로 JSON 파일을 보관해 주세요.",
-    footer:"브라우저에 저장되는 개인용 급여 관리 도구",
+    backupNotice:"데이터는 클라우드 DB에 실시간 자동 저장됩니다.",
+    footer:"클라우드 실시간 동기화 급여 관리 도구",
     placeholderName:"예: Thuong", placeholderBase:"예: 1500000", placeholderRate:"예: 10", placeholderAmount:"예: 1000000",
     deletedEmployee:"삭제된 직원", confirmDeleteSale:"이 매출 기록을 삭제할까요?",
     confirmDeleteEmployee:'"{name}" 직원을 삭제할까요?',
@@ -381,8 +355,8 @@ const I18N = {
     employeeRegister:"Add Employee", employeeEdit:"Edit Employee", employeeName:"Employee Name",
     monthlyBase:"Monthly Base Salary", ratePercent:"Default Rate (%)", register:"Add Employee", saveEdit:"Save Changes",
     cancel:"Cancel", registeredEmployees:"Registered Employees", people:"employees", noEmployees:"No employees registered.",
-    backupNotice:"Data is stored in this browser's localStorage. Use <b>Backup</b> button to save JSON.",
-    footer:"Personal payroll management tool stored in your browser",
+    backupNotice:"Data is automatically backed up in real time.",
+    footer:"Cloud synchronized payroll management tool",
     placeholderName:"e.g. Thuong", placeholderBase:"e.g. 1500000", placeholderRate:"e.g. 10", placeholderAmount:"e.g. 1000000",
     deletedEmployee:"Deleted employee", confirmDeleteSale:"Delete this sales record?",
     confirmDeleteEmployee:'Delete "{name}"?',
@@ -407,8 +381,8 @@ const I18N = {
     employeeRegister:"Đăng ký nhân viên", employeeEdit:"Sửa thông tin nhân viên", employeeName:"Tên nhân viên",
     monthlyBase:"Lương cơ bản (tháng)", ratePercent:"Tỷ lệ mặc định (%)", register:"Đăng ký nhân viên", saveEdit:"Lưu thay đổi",
     cancel:"Hủy", registeredEmployees:"Nhân viên đã đăng ký", people:"người", noEmployees:"Chưa có nhân viên.",
-    backupNotice:"Dữ liệu được lưu trong localStorage. Hãy dùng nút <b>Sao lưu</b> để lưu file JSON.",
-    footer:"Công cụ quản lý lương cá nhân lưu trong trình duyệt",
+    backupNotice:"Dữ liệu được tự động sao lưu theo thời gian thực.",
+    footer:"Công cụ quản lý lương đồng bộ đám mây",
     placeholderName:"ví dụ: Thuong", placeholderBase:"ví dụ: 1500000", placeholderRate:"ví dụ: 10", placeholderAmount:"ví dụ: 1000000",
     deletedEmployee:"Nhân viên đã xóa", confirmDeleteSale:"Bạn có muốn xóa bản ghi doanh thu này không?",
     confirmDeleteEmployee:'Bạn có muốn xóa "{name}" không?',
@@ -490,21 +464,42 @@ function applyLanguage(){
   renderDashboard();
 }
 
-const state = loadState();
+let state = { employees: [], sales: [] };
 
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){
-      const data = JSON.parse(raw);
-      return { employees:Array.isArray(data.employees)?data.employees:[], sales:Array.isArray(data.sales)?data.sales:[] };
-    }
-  }catch(e){}
-  return {employees:[], sales:[]};
+// Firebase 실시간 리스너 (DB에 변경사항이 있을 때마다 자동 동기화)
+dbRef.on('value', (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    state.employees = Array.isArray(data.employees) ? data.employees : [];
+    state.sales = Array.isArray(data.sales) ? data.sales : [];
+  } else {
+    state = { employees: [], sales: [] };
+  }
+  updateSyncStatus(true);
+  refresh();
+}, (error) => {
+  updateSyncStatus(false);
+});
+
+function saveState() {
+  updateSyncStatus(false, "저장 중...");
+  dbRef.set(state).then(() => {
+    updateSyncStatus(true);
+  }).catch((err) => {
+    updateSyncStatus(false, "저장 실패");
+  });
 }
 
-function saveState(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+function updateSyncStatus(isOnline, text) {
+  const dot = document.getElementById("syncDot");
+  const txt = document.getElementById("syncText");
+  if (isOnline) {
+    dot.classList.remove("offline");
+    txt.textContent = text || "클라우드 동기화 완료";
+  } else {
+    dot.classList.add("offline");
+    txt.textContent = text || "오프라인 / 연결 불가";
+  }
 }
 
 function uid(){
@@ -596,7 +591,7 @@ function renderSales(){
     </tr>`;
   }).join("");
 
-  cardList.innerHTML = list.map(s=>{
+  cardList.innerHTML = list.map(s => {
     const e = employeeById(s.employeeId);
     const pay = salePay(s);
     const rate = s.rate !== undefined ? s.rate : (e ? e.rate : 0);
@@ -607,18 +602,9 @@ function renderSales(){
         <span class="time-str">${escapeHtml(formatDateTime(s))}</span>
       </div>
       <div class="card-body">
-        <div class="card-item">
-          <span class="lbl">${t("amount")}</span>
-          <span class="val">${money(s.amount)}</span>
-        </div>
-        <div class="card-item">
-          <span class="lbl">${t("rate")}</span>
-          <span class="val">${rate}%</span>
-        </div>
-        <div class="card-item">
-          <span class="lbl">${t("salary")}</span>
-          <span class="val">${money(pay)}</span>
-        </div>
+        <div class="card-item"><span class="lbl">${t("amount")}</span><span class="val">${money(s.amount)}</span></div>
+        <div class="card-item"><span class="lbl">${t("rate")}</span><span class="val">${rate}%</span></div>
+        <div class="card-item"><span class="lbl">${t("salary")}</span><span class="val">${money(pay)}</span></div>
         <div class="card-actions">
           <button class="icon-btn danger-text" onclick="deleteSale('${s.id}')">${t("delete")}</button>
         </div>
@@ -695,10 +681,10 @@ function renderMonthly(){
 
   cardList.innerHTML = rows.map(r=>`<div class="data-card">
     <div class="card-header">
-      <span>${escapeHtml(r.e.name)}</span>
+      <span class="emp-name">${escapeHtml(r.e.name)}</span>
       <button class="btn sm secondary" onclick="viewEmployeeMonthSales('${r.e.id}')">${t("viewDetail")}</button>
     </div>
-    <div class="card-body">
+    <div class="card-body" style="grid-template-columns: repeat(2, 1fr);">
       <div class="card-item"><span class="lbl">${t("baseSalary")}</span><span class="val">${money(r.e.baseSalary)}</span></div>
       <div class="card-item"><span class="lbl">${t("amount")}</span><span class="val">${money(r.totalSales)}</span></div>
       <div class="card-item"><span class="lbl">${t("commission")}</span><span class="val">${money(r.commission)}</span></div>
@@ -752,15 +738,15 @@ function renderModalSales(){
     const rate = s.rate !== undefined ? s.rate : (employeeById(s.employeeId)?.rate || 0);
     return `<div class="data-card">
       <div class="card-header">
-        <span>${escapeHtml(formatDateTime(s))}</span>
+        <span class="time-str">${escapeHtml(formatDateTime(s))}</span>
       </div>
       <div class="card-body">
         <div class="card-item"><span class="lbl">${t("amount")}</span><span class="val">${money(s.amount)}</span></div>
         <div class="card-item"><span class="lbl">${t("rate")}</span><span class="val">${rate}%</span></div>
         <div class="card-item"><span class="lbl">${t("salary")}</span><span class="val">${money(pay)}</span></div>
-      </div>
-      <div class="card-actions">
-        <button class="icon-btn danger-text" onclick="deleteSaleModal('${s.id}')">${t("delete")}</button>
+        <div class="card-actions">
+          <button class="icon-btn danger-text" onclick="deleteSaleModal('${s.id}')">${t("delete")}</button>
+        </div>
       </div>
     </div>`;
   }).join("");
@@ -888,6 +874,7 @@ document.getElementById("languageSelect").addEventListener("change",e=>{
 });
 document.getElementById("monthPicker").addEventListener("change",renderMonthly);
 
+// 오프라인 백업용 기능 유지
 document.getElementById("exportBtn").addEventListener("click",()=>{
   const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob);
